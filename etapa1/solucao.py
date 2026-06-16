@@ -7,6 +7,8 @@ a extrair dados de um texto desestruturado e devolver estritamente um JSON.
 
 Sem ferramentas (tools): o modelo responde com o JSON em texto puro.
 
+Agora em modo chat: você digita perguntas no terminal até escrever 'sair'.
+
 Uso:
     python solucao.py
 """
@@ -19,7 +21,8 @@ import anthropic
 
 MODELO = "claude-haiku-4-5"
 
-PERGUNTA_USUARIO = "Será que vai chover em Maringá amanhã? Quero saber se levo guarda-chuva."
+# Apenas uma sugestão exibida na tela — o usuário digita o que quiser.
+EXEMPLO = "Será que vai chover em Maringá amanhã? Quero saber se levo guarda-chuva."
 
 
 # O contrato é explícito: o modelo é um extrator e só pode devolver JSON puro.
@@ -41,17 +44,15 @@ Regras obrigatórias:
 """
 
 
-def main() -> None:
-    load_dotenv()
-    client = anthropic.Anthropic()
-
+def extrair(client: anthropic.Anthropic, pergunta: str) -> None:
+    """Faz uma chamada ao modelo e imprime o JSON extraído da pergunta."""
     resposta = client.messages.create(
         model=MODELO,
         max_tokens=200,
         system=SYSTEM_PROMPT,
         # temperature=0 -> saída determinística, essencial para extração de dados.
         temperature=0,
-        messages=[{"role": "user", "content": PERGUNTA_USUARIO}],
+        messages=[{"role": "user", "content": pergunta}],
     )
 
     texto = resposta.content[0].text
@@ -61,7 +62,6 @@ def main() -> None:
 
     # Mesmo proibido pelo system prompt, alguns modelos insistem em embrulhar o
     # JSON em uma "cerca" de código (```json ... ```). Removemos antes de ler.
-    # (Na produção, o jeito à prova de falhas é structured outputs — veja README.)
     texto_limpo = texto.strip()
     if texto_limpo.startswith("```"):
         texto_limpo = texto_limpo.split("```")[1]
@@ -77,6 +77,24 @@ def main() -> None:
         print(f"  intencao      = {dados.get('intencao')}")
     except json.JSONDecodeError:
         print("FALHOU: a resposta não é um JSON válido.")
+
+
+def main() -> None:
+    load_dotenv()
+    client = anthropic.Anthropic()
+
+    print("Extrator de clima — digite uma pergunta ('sair' para encerrar).")
+    print(f"Ex.: {EXEMPLO}")
+
+    while True:
+        pergunta = input("\nVocê: ").strip()
+        if pergunta.lower() in {"sair", "exit", "quit"}:
+            print("Até logo! 👋")
+            break
+        if not pergunta:
+            continue
+
+        extrair(client, pergunta)
 
 
 if __name__ == "__main__":
