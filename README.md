@@ -33,7 +33,7 @@ Se aparecer **`OK!`**, está tudo certo para começar. 🎉
 
 ---
 
-Aqui: sk-an t-api03 -8pjFZQvP72t2tURN9MU  wesaoHMznhYpGSFewEvZ4o4OcKiYX1ES9AMhXm0X97e8JH2dAGhQ GPIrRIZLuOEjq9A-AGt00wAA
+Aqui: https://pastebin.com/gYxVhcDn
 
 ## 🗺️ A Trilha
 
