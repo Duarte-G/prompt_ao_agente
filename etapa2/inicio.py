@@ -16,6 +16,8 @@ O fluxo do Tool Calling tem 4 passos:
       b) Tratar o stop_reason == "tool_use": capturar os argumentos e executar
          a função get_clima().
 
+Agora em modo chat: você digita perguntas no terminal até escrever 'sair'.
+
 Uso:
     python inicio.py
 """
@@ -27,7 +29,8 @@ import anthropic
 
 MODELO = "claude-haiku-4-5"
 
-PERGUNTA_USUARIO = "Como está o tempo em Maringá hoje?"
+# Apenas uma sugestão exibida na tela — o usuário digita o que quiser.
+EXEMPLO = "Como está o tempo em Maringá hoje?"
 
 
 # --- A "função real" (mockada para o workshop) -------------------------------
@@ -62,12 +65,8 @@ TOOLS = [
 ]
 
 
-def main() -> None:
-    load_dotenv()
-    client = anthropic.Anthropic()
-
-    mensagens = [{"role": "user", "content": PERGUNTA_USUARIO}]
-
+def responder(client: anthropic.Anthropic, mensagens: list) -> None:
+    """Roda o ciclo de tool calling para a última pergunta no histórico."""
     # PASSO 1 + 2: enviamos a pergunta e o modelo decide se usa a ferramenta.
     resposta = client.messages.create(
         model=MODELO,
@@ -92,6 +91,28 @@ def main() -> None:
     # =========================================================================
     if False:  # <-- troque pela condição correta
         pass
+
+
+def main() -> None:
+    load_dotenv()
+    client = anthropic.Anthropic()
+
+    print("Assistente de clima — pergunte algo ('sair' para encerrar).")
+    print(f"Ex.: {EXEMPLO}")
+
+    # O histórico persiste entre as perguntas, criando uma conversa contínua.
+    mensagens = []
+
+    while True:
+        pergunta = input("\nVocê: ").strip()
+        if pergunta.lower() in {"sair", "exit", "quit"}:
+            print("Até logo! 👋")
+            break
+        if not pergunta:
+            continue
+
+        mensagens.append({"role": "user", "content": pergunta})
+        responder(client, mensagens)
 
 
 if __name__ == "__main__":

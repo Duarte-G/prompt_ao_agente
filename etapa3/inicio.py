@@ -16,7 +16,10 @@ Para resolver, o agente precisa, em sequência:
 Isso é o padrão ReAct (Reasoning + Acting): o modelo RACIOCINA sobre o próximo
 passo, AGE chamando uma ferramenta, OBSERVA o resultado e repete — até concluir.
 
->>> Sua missão: escrever o LOOP do agente (o grande TODO lá embaixo).
+>>> Sua missão: escrever o LOOP do agente (o grande TODO em 'rodar_agente').
+
+Agora em modo chat: você conversa com o agente no terminal e o histórico
+persiste entre os pedidos. Digite 'sair' para encerrar.
 
 Uso:
     python inicio.py
@@ -30,7 +33,11 @@ import anthropic
 
 MODELO = "claude-haiku-4-5"
 
-PEDIDO = "Qual o clima no CEP 01310-100? Salve em previsao.txt"
+# Apenas uma sugestão exibida na tela — o usuário digita o que quiser.
+EXEMPLO = "Qual o clima no CEP 01310-100? Salve em previsao.txt"
+
+# Trava de segurança: impede loop infinito caso algo dê errado.
+MAX_ITERACOES = 10
 
 
 # =============================================================================
@@ -120,22 +127,23 @@ TOOLS = [
 ]
 
 
-def main() -> None:
-    load_dotenv()
-    client = anthropic.Anthropic()
+def rodar_agente(client: anthropic.Anthropic, mensagens: list) -> None:
+    """Executa o loop ReAct sobre o histórico até o agente dar a resposta final.
 
-    # O histórico começa só com o pedido do usuário.
-    mensagens = [{"role": "user", "content": PEDIDO}]
-
+    Quando esta função é chamada, 'mensagens' já contém o pedido do usuário
+    (a última mensagem). Seu trabalho é fazer o agente raciocinar e agir.
+    """
     # =========================================================================
     # TODO (o coração desta etapa): escreva o LOOP do agente.
     #
-    # while True:
+    # for iteracao in range(1, MAX_ITERACOES + 1):
     #   1. Chame a API: client.messages.create(model=MODELO, max_tokens=1024,
     #      tools=TOOLS, messages=mensagens).
     #
     #   2. SE resposta.stop_reason != "tool_use":
-    #        -> o agente terminou. Imprima o texto final e dê 'break'.
+    #        -> o agente terminou. Anexe a resposta ao histórico
+    #           (mensagens.append({"role": "assistant", "content": resposta.content})),
+    #           imprima o texto final e dê 'return'.
     #
     #   3. SENÃO (o modelo quer usar ferramenta(s)):
     #        a. Anexe a fala do modelo ao histórico:
@@ -152,10 +160,31 @@ def main() -> None:
     #
     # DICA: um turno pode pedir MAIS DE UMA ferramenta. Itere todos os blocos
     #       tool_use antes de voltar ao topo do loop.
-    # DICA: use um contador de segurança (ex: máx. 10 voltas) para evitar
-    #       loops infinitos enquanto você depura.
+    # DICA: MAX_ITERACOES já é seu contador de segurança contra loops infinitos.
     # =========================================================================
     pass  # <-- apague e escreva seu loop aqui
+
+
+def main() -> None:
+    load_dotenv()
+    client = anthropic.Anthropic()
+
+    print("Agente ReAct — peça algo ('sair' para encerrar).")
+    print(f"Ex.: {EXEMPLO}")
+
+    # O histórico persiste entre os pedidos: o agente lembra da conversa.
+    mensagens = []
+
+    while True:
+        pedido = input("\nVocê: ").strip()
+        if pedido.lower() in {"sair", "exit", "quit"}:
+            print("Até logo! 👋")
+            break
+        if not pedido:
+            continue
+
+        mensagens.append({"role": "user", "content": pedido})
+        rodar_agente(client, mensagens)
 
 
 if __name__ == "__main__":

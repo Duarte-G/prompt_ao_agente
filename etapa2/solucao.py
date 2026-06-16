@@ -8,24 +8,45 @@ Mostra o ciclo inteiro:
   3. Nosso código executa get_clima() e devolve o resultado como tool_result.
   4. O modelo lê o resultado e escreve a resposta final em linguagem natural.
 
+Agora em modo chat: você pergunta no terminal e o histórico persiste entre
+as perguntas, criando uma conversa contínua. Digite 'sair' para encerrar.
+
 Uso:
     python solucao.py
 """
 
 import os
 
+import requests
 from dotenv import load_dotenv
 import anthropic
 
 MODELO = "claude-haiku-4-5"
 
-PERGUNTA_USUARIO = "Como está o tempo em Maringá hoje?"
+# Apenas uma sugestão exibida na tela — o usuário digita o que quiser.
+EXEMPLO = "Como está o tempo em Maringá hoje?"
 
 
-# --- A "função real" (mockada para o workshop) -------------------------------
+# --- A função real: consulta o clima de verdade no serviço gratuito wttr.in --
 def get_clima(cidade: str) -> str:
-    """Simula a consulta a uma API de clima."""
-    return "25 graus e ensolarado"
+    """Consulta a condição climática atual da cidade (serviço gratuito wttr.in).
+
+    Não precisa de chave de API. Retorna algo como "Ensolarado, +25°C".
+    """
+    try:
+        resp = requests.get(
+            f"https://wttr.in/{cidade}",
+            params={"format": "%C, %t", "lang": "pt", "m": ""},  # condição, temperatura (°C)
+            headers={"User-Agent": "curl/8.0"},  # wttr.in devolve texto puro p/ clientes não-browser
+            timeout=15,
+        )
+        resp.raise_for_status()
+        texto = resp.text.strip()
+        if not texto or "Unknown location" in texto or "Sorry" in texto:
+            return f"Não foi possível obter o clima de '{cidade}'."
+        return texto
+    except requests.RequestException as e:
+        return f"Erro ao consultar o clima: {e}"
 
 
 # --- Schema da ferramenta: como o modelo "enxerga" a função get_clima --------
@@ -51,12 +72,8 @@ TOOLS = [
 ]
 
 
-def main() -> None:
-    load_dotenv()
-    client = anthropic.Anthropic()
-
-    mensagens = [{"role": "user", "content": PERGUNTA_USUARIO}]
-
+def responder(client: anthropic.Anthropic, mensagens: list) -> None:
+    """Roda o ciclo de tool calling para a última pergunta no histórico."""
     # PASSO 1 + 2: o modelo recebe a pergunta e decide usar a ferramenta.
     resposta = client.messages.create(
         model=MODELO,
@@ -111,13 +128,36 @@ def main() -> None:
             b.text for b in resposta_final.content if b.type == "text"
         )
         print("-" * 40)
-        print("Resposta final do modelo:")
-        print(texto_final)
+        print(f"Assistente: {texto_final}")
+        # Guarda a resposta final para manter a conversa contínua.
+        mensagens.append({"role": "assistant", "content": resposta_final.content})
     else:
         # O modelo respondeu direto, sem usar ferramenta.
         texto = next(b.text for b in resposta.content if b.type == "text")
-        print("O modelo respondeu sem usar a ferramenta:")
-        print(texto)
+        print(f"Assistente: {texto}")
+        mensagens.append({"role": "assistant", "content": resposta.content})
+
+
+def main() -> None:
+    load_dotenv()
+    client = anthropic.Anthropic()
+
+    print("Assistente de clima — pergunte algo ('sair' para encerrar).")
+    print(f"Ex.: {EXEMPLO}")
+
+    # O histórico persiste entre as perguntas, criando uma conversa contínua.
+    mensagens = []
+
+    while True:
+        pergunta = input("\nVocê: ").strip()
+        if pergunta.lower() in {"sair", "exit", "quit"}:
+            print("Até logo! 👋")
+            break
+        if not pergunta:
+            continue
+
+        mensagens.append({"role": "user", "content": pergunta})
+        responder(client, mensagens)
 
 
 if __name__ == "__main__":

@@ -33,6 +33,8 @@ Se aparecer **`OK!`**, está tudo certo para começar. 🎉
 
 ---
 
+Aqui tá a key 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
+
 ## 🗺️ A Trilha
 
 | Etapa | Conceito | O que você aprende |
