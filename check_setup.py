@@ -5,7 +5,7 @@ O que este script faz:
   1. Carrega as variáveis de ambiente do arquivo .env
   2. Verifica se a ANTHROPIC_API_KEY existe
   3. Faz uma chamada minúscula ao modelo para validar a conexão com a API
-  4. Imprime 'TUDO PRONTO!' se tudo estiver funcionando
+  4. Imprime 'OK!' se tudo estiver funcionando
 
 Uso:
     python check_setup.py
@@ -49,7 +49,7 @@ def main() -> None:
         sys.exit(1)
 
     # 4. Sucesso!
-    print("TUDO PRONTO!")
+    print("OK!")
 
 
 if __name__ == "__main__":

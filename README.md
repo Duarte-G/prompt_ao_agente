@@ -26,10 +26,10 @@ pip install -r requirements.txt
 Copy-Item .env.example .env         # depois edite .env e cole sua chave real
 
 # 4. Valide o ambiente
-python check_setup.py               # deve imprimir: TUDO PRONTO!
+python check_setup.py               # deve imprimir: OK!
 ```
 
-Se aparecer **`TUDO PRONTO!`**, está tudo certo para começar. 🎉
+Se aparecer **`OK!`**, está tudo certo para começar. 🎉
 
 ---
 

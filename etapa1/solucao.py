@@ -59,8 +59,18 @@ def main() -> None:
     print(texto)
     print("-" * 40)
 
+    # Mesmo proibido pelo system prompt, alguns modelos insistem em embrulhar o
+    # JSON em uma "cerca" de código (```json ... ```). Removemos antes de ler.
+    # (Na produção, o jeito à prova de falhas é structured outputs — veja README.)
+    texto_limpo = texto.strip()
+    if texto_limpo.startswith("```"):
+        texto_limpo = texto_limpo.split("```")[1]
+        if texto_limpo.startswith("json"):
+            texto_limpo = texto_limpo[len("json"):]
+        texto_limpo = texto_limpo.strip()
+
     try:
-        dados = json.loads(texto)
+        dados = json.loads(texto_limpo)
         print("JSON interpretado com sucesso:")
         print(f"  cidade        = {dados.get('cidade')}")
         print(f"  data_relativa = {dados.get('data_relativa')}")

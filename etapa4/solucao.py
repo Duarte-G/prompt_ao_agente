@@ -40,16 +40,30 @@ ARQUIVO_MEMORIA = "memoria.json"
 # Ferramentas originais (Etapa 3).
 # =============================================================================
 def buscar_cep(cep: str) -> str:
-    """Consulta o CEP na API gratuita do ViaCEP e retorna a cidade."""
+    """Descobre a cidade a partir do CEP — versão MOCK (offline) para o workshop.
+
+    Em redes corporativas o HTTPS costuma ser interceptado (proxy com
+    certificado próprio), o que quebra a chamada real ao ViaCEP. Para a demo
+    funcionar em qualquer rede, usamos um mapa fixo. A versão com a API real
+    está logo abaixo, comentada — descomente fora de redes com proxy de SSL.
+    """
     cep_limpo = cep.replace("-", "").replace(".", "").strip()
-    try:
-        resp = requests.get(f"https://viacep.com.br/ws/{cep_limpo}/json/", timeout=10)
-        dados = resp.json()
-        if dados.get("erro"):
-            return f"CEP {cep} não encontrado."
-        return dados.get("localidade", "cidade desconhecida")
-    except requests.RequestException as e:
-        return f"Erro ao consultar o CEP: {e}"
+    cidades = {
+        "01310100": "São Paulo",
+        "80010000": "Curitiba",
+        "87010000": "Maringá",
+    }
+    return cidades.get(cep_limpo, f"CEP {cep} não encontrado.")
+
+    # --- Versão real do ViaCEP (requer internet sem interceptação de SSL) ----
+    # try:
+    #     resp = requests.get(f"https://viacep.com.br/ws/{cep_limpo}/json/", timeout=10)
+    #     dados = resp.json()
+    #     if dados.get("erro"):
+    #         return f"CEP {cep} não encontrado."
+    #     return dados.get("localidade", "cidade desconhecida")
+    # except requests.RequestException as e:
+    #     return f"Erro ao consultar o CEP: {e}"
 
 
 def get_clima(cidade: str) -> str:
