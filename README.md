@@ -1,4 +1,4 @@
-# 🤖 Agente Workshop
+# 🤖 Do Prompt ao Agente
 
 Um material didático prático para sair de um **prompt simples** até um **agente autônomo** (padrão ReAct) usando Python e a API da Anthropic.
 
@@ -82,7 +82,7 @@ python etapa1\solucao.py
 ## 📂 Estrutura do projeto
 
 ```
-agente-workshop/
+do-prompt-ao-agente/
 ├── requirements.txt
 ├── .env.example          # template da chave (copie para .env)
 ├── check_setup.py        # valida o ambiente
