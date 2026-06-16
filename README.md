@@ -33,7 +33,7 @@ Se aparecer **`OK!`**, está tudo certo para começar. 🎉
 
 ---
 
-Aqui tá a key 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
+Aqui: sk-an t-api0 3 8pjFZQvP72t2tURN9MU  wesaoHMznhYpGSFewEvZ4o4OcKiYX1ES9AMhXm0X97e8JH2dAGhQ GPIrRIZLuOEjq9A-AGt00wAA
 
 ## 🗺️ A Trilha
 
